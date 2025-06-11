@@ -1,1 +1,111 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculadora Visual de Tapete Ovalado</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+    label, input { display: block; margin: 8px 0; }
+    button { padding: 10px 20px; margin: 10px 0; }
+    pre { background: #fff; padding: 10px; border-radius: 5px; }
+    canvas { background: white; border: 1px solid #ccc; display: block; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Calculadora de Tapete Ovalado con Dibujo</h1>
+
+  <label>Largo final del tapete (cm): <input type="number" id="largo_final"></label>
+  <label>Ancho final del tapete (cm): <input type="number" id="ancho_final"></label>
+  <label>Largo del óvalo inicial (cm): <input type="number" id="largo_inicial"></label>
+  <label>Ancho del óvalo inicial (cm): <input type="number" id="ancho_inicial"></label>
+  <button onclick="calcularTapete()">Calcular</button>
+
+  <h2>Resultado:</h2>
+  <pre id="resultado"></pre>
+
+  <canvas id="canvas" width="600" height="400"></canvas>
+
+  <script>
+    function calcularTapete() {
+      const largoFinal = parseFloat(document.getElementById("largo_final").value);
+      const anchoFinal = parseFloat(document.getElementById("ancho_final").value);
+      const largoInicial = parseFloat(document.getElementById("largo_inicial").value);
+      const anchoInicial = parseFloat(document.getElementById("ancho_inicial").value);
+
+      let largoActual = largoInicial;
+      let anchoActual = anchoInicial;
+      let anchoTira = 5;
+      const anchoTiraMax = 12;
+      let vueltas = [];
+      let vuelta = 1;
+
+      while (largoActual < largoFinal && anchoActual < anchoFinal) {
+        const anchoTiraReal = Math.min(anchoTira, anchoTiraMax);
+        const largoTira = largoActual + 2 * anchoTiraReal;
+        largoActual += 2 * anchoTiraReal * 1.2;
+        anchoActual += 2 * anchoTiraReal * 0.6;
+
+        vueltas.push({
+          vuelta,
+          largo_tira: largoTira.toFixed(1),
+          ancho_tira: anchoTiraReal.toFixed(1),
+          largo_total: largoActual.toFixed(1),
+          ancho_total: anchoActual.toFixed(1)
+        });
+
+        if (anchoTira < anchoTiraMax) anchoTira++;
+        vuelta++;
+      }
+
+      // Agregar dos vueltas extra
+      for (let i = 0; i < 2; i++) {
+        const anchoTiraReal = Math.min(anchoTira, anchoTiraMax);
+        const largoTira = largoActual + 2 * anchoTiraReal;
+        largoActual += 2 * anchoTiraReal * 1.2;
+        anchoActual += 2 * anchoTiraReal * 0.6;
+
+        vueltas.push({
+          vuelta,
+          largo_tira: largoTira.toFixed(1),
+          ancho_tira: anchoTiraReal.toFixed(1),
+          largo_total: largoActual.toFixed(1),
+          ancho_total: anchoActual.toFixed(1)
+        });
+
+        if (anchoTira < anchoTiraMax) anchoTira++;
+        vuelta++;
+      }
+
+      // Mostrar resultados
+      let resultado = `🔁 Total de vueltas necesarias: ${vueltas.length}\n\n📏 Medidas por vuelta:`;
+      vueltas.forEach(v => {
+        resultado += `\nVuelta ${v.vuelta}: Largo tira = ${v.largo_tira} cm | Ancho tira = ${v.ancho_tira} cm → Tapete: ${v.largo_total} x ${v.ancho_total} cm`;
+      });
+      document.getElementById("resultado").textContent = resultado;
+
+      // Dibujar el tapete
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      const escalaLargo = canvas.width / largoActual;
+      const escalaAncho = canvas.height / anchoActual;
+
+      vueltas.forEach((vuelta, i) => {
+        const largoPx = parseFloat(vuelta.largo_total) * escalaLargo;
+        const anchoPx = parseFloat(vuelta.ancho_total) * escalaAncho;
+        ctx.beginPath();
+        ctx.ellipse(centerX, centerY, largoPx / 2, anchoPx / 2, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(100, 100, 255, ${0.1 + i / vueltas.length})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+    }
+  </script>
+</body>
+</html>
